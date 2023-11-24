@@ -1,0 +1,11 @@
+# .gitignore
+
+# Python files
+*.pyc
+__pycache__/
+
+# Virtual environment
+.env
+
+# Jupyter Notebook
+.ipynb_checkpoin
