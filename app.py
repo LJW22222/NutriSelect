@@ -8,33 +8,28 @@ app = Flask(__name__)
 
 openai.api_key = config('OPENAI_API_KEY')
 
+# Initialize conversation outside the function to maintain state
+conversation = [
+    {"role": "system", "content": "You are a helpful assistant."},
+]
+
 def get_ai_response(question):
-    conversation = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": question},
-    ]
-    start_time = time.time()  # 시작 시간 측정
+    global conversation  # Reference the global variable
+    conversation.append({"role": "user", "content": question})
+    
+    start_time = time.time()
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=conversation
     )
-    end_time = time.time()  # 종료 시간 측정
-    elapsed_time = end_time - start_time  # 경과 시간 계산
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    
+    # Update conversation with AI response
+    conversation.append({"role": "assistant", "content": response['choices'][0]['message']['content']})
     
     return response['choices'][0]['message']['content'], elapsed_time
 
-
-def chatgpt():
-    while True:
-        question = input("나 : ")
-        
-        if question.lower() == 'exit':
-            break
-        
-        assistant_content, elapsed_time = get_ai_response(question)
-
-        print(f"AI: {assistant_content}")
-        print(f"경과 시간: {elapsed_time:.2f} s")
 
 @app.route("/")
 def index():

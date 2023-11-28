@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,24 +10,57 @@
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-
         }
+
         h1 {
             color: #3498db;
             text-align: center;
         }
+
+
+        #chat-history-summary {
+            max-width: 30%; /* Adjust the width of the summary container */
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            color: black;
+            background-color: #f2f2f2; /* Light gray background */
+            margin-left: 20px; /* Add some space between chat and summary */
+        }
+    
+        #summary-content {
+            display: flex;
+            flex-direction: column;
+        }
+    
+        #chat-history-summary h2 {
+            color: #3498db;
+            text-align: center;
+            margin-bottom: 15px; /* Add space below the heading */
+        }
+    
+        .summary-message {
+            margin-bottom: 10px; /* Add space between summary messages */
+        }
+    
+        .summary-message strong {
+            color: #555; /* Dark gray color for sender names */
+        }
+
         #backback {
-            width : 100%;
-            height : 100%;
+            width: 100%;
+            height: 100%;
             background-size: cover;
             background-repeat: no-repeat;
             background-image: url('image.jpg');
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        
 
         #chat-container {
-            max-width: 600px;
-            margin: 20px auto;
+            max-width: 930px; /* Increased by 15% */
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             overflow: hidden;
@@ -38,6 +72,41 @@
             padding: 20px;
             height: 300px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-container {
+            display: flex;
+            margin-bottom: 10px;
+            max-width: 100%;
+        }
+
+        .user-message-container {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 5px;
+            word-wrap: break-word;
+            max-width: 70%;
+        }
+
+        .user-message-bubble {
+            background-color: #3498db;
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        .ai-message-container {
+            justify-content: flex-start; /* Change from flex-end to flex-start */
+        }
+
+        .ai-message-bubble {
+            background-color: #e0e0e0;
+            color: #000;
         }
 
         #user-input {
@@ -74,6 +143,7 @@
         }
     </style>
 </head>
+
 <body>
     <h1>영양제</h1>
     <div id="backback">
@@ -81,15 +151,21 @@
             <div id="chat-history"></div>
             <div id="user-input">
                 <input type="text" id="user-message" placeholder="질문을 입력해 주세요!">
-                <br><div id="prompt">예시: "심장에 좋은 영양제를 한개만 추천해서 이름만 알려줘"</div><br>
+                <br>
+                <div id="prompt">예시: "심장에 좋은 영양제를 한개만 추천해서 이름만 알려줘"</div>
+                <br>
                 <button id="send-button" onclick="sendMessage()">영양제 추천 받기!</button>
             </div>
+        </div>
+        <div id="chat-history-summary">
+            <h2>채팅 내역</h2>
+            <div id="summary-content"></div>
         </div>
     </div>
     <script>
         function sendMessage() {
             var userMessage = document.getElementById('user-message').value;
-            appendMessage('나', userMessage);
+            appendMessage('질문 내역', userMessage, 'user');
             document.getElementById('user-message').value = '';
 
             // Send the user's message to the server and receive AI response
@@ -103,16 +179,39 @@
             .then(response => response.json())
             .then(data => {
                 var aiMessage = data.message;
-                appendMessage('AI 약사', aiMessage);
+                appendMessage('AI 약사', aiMessage, 'ai');
             });
         }
 
-        function appendMessage(sender, message) {
+        function appendMessage(sender, message, messageType) {
             var chatHistory = document.getElementById('chat-history');
-            var messageDiv = document.createElement('div');
-            messageDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
-            chatHistory.appendChild(messageDiv);
+            var summaryContent = document.getElementById('summary-content');
+        
+            var messageContainer = document.createElement('div');
+            var messageBubble = document.createElement('div');
+        
+            messageContainer.classList.add('message-container');
+            messageBubble.classList.add('message-bubble');
+        
+            if (messageType === 'ai') {
+                messageContainer.classList.add('ai-message-container');
+                messageBubble.classList.add('ai-message-bubble');
+            } else if (messageType === 'user') {
+                messageContainer.classList.add('user-message-container');
+                messageBubble.classList.add('user-message-bubble');
+            }
+        
+            messageBubble.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            messageContainer.appendChild(messageBubble);
+            chatHistory.appendChild(messageContainer);
+        
+            // Update the summary on the right side
+            var summaryMessage = document.createElement('div');
+            summaryMessage.classList.add('summary-message'); // Add the summary-message class
+            summaryMessage.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            summaryContent.appendChild(summaryMessage);
         }
     </script>
 </body>
+
 </html>
