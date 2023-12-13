@@ -141,12 +141,26 @@
             text-align: center;
             color: #555;
         }
+        #product-info {
+            max-width: 30%;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            color: black;
+            background-color: #f2f2f2; 
+            margin-right: 20px; 
+        }
+
     </style>
 </head>
 
 <body>
     <h1>영양제</h1>
     <div id="backback">
+        <div id="product-info">
+            <h2>영양제 정보</h2>
+        </div>
         <div id="chat-container">
             <div id="chat-history"></div>
             <div id="user-input">
@@ -161,38 +175,74 @@
             <h2>채팅 내역</h2>
             <div id="summary-content"></div>
         </div>
+ 
     </div>
     <script>
         function sendMessage() {
             var userMessage = document.getElementById('user-message').value;
+            userMessage2 = userMessage + " 영양제는 큰따음표로 감싸줘";
             appendMessage('질문 내역', userMessage, 'user');
             document.getElementById('user-message').value = '';
-
+        
             // Send the user's message to the server and receive AI response
             fetch('/send-message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: userMessage }),
+                body: JSON.stringify({ message: userMessage2 }),
             })
             .then(response => response.json())
             .then(data => {
                 var aiMessage = data.message;
                 appendMessage('AI 약사', aiMessage, 'ai');
+        
+                // Check if AI's response contains supplement recommendation
+                var supplementMatch = aiMessage.match(/“([^”]*)”/);
+                var supplementName = supplementMatch ? supplementMatch[1] : "";
+        
+                // If there is a supplement recommendation, generate a new question
+
+                    var newQuestion = `{ "${supplementName}" }의 
+                    대한 정보를 아래처럼 순서대로 알려줘
+                    1. 가격
+                    2. 구매할수 있는 사이트`;
+        
+                    // Send the new question to the server and update the UI
+                    fetch('/send-message', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: newQuestion }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        var newAiMessage = data.message;
+                    
+                        // Update the product info on the right side
+                        var productInfo = document.getElementById('product-info');
+                    
+                        // Create a new div element for the current supplement information
+                        var supplementInfoDiv = document.createElement('div');
+                        supplementInfoDiv.innerHTML = `<strong>Information about ${supplementName}:</strong> ${newAiMessage}`;
+                    
+                        // Append the new information to the existing content
+                        productInfo.appendChild(supplementInfoDiv);
+                    });
             });
         }
 
         function appendMessage(sender, message, messageType) {
             var chatHistory = document.getElementById('chat-history');
             var summaryContent = document.getElementById('summary-content');
-        
+
             var messageContainer = document.createElement('div');
             var messageBubble = document.createElement('div');
-        
+
             messageContainer.classList.add('message-container');
             messageBubble.classList.add('message-bubble');
-        
+
             if (messageType === 'ai') {
                 messageContainer.classList.add('ai-message-container');
                 messageBubble.classList.add('ai-message-bubble');
@@ -200,18 +250,19 @@
                 messageContainer.classList.add('user-message-container');
                 messageBubble.classList.add('user-message-bubble');
             }
-        
+
             messageBubble.innerHTML = `<strong>${sender}:</strong> ${message}`;
             messageContainer.appendChild(messageBubble);
             chatHistory.appendChild(messageContainer);
-        
+
             // Update the summary on the right side
             var summaryMessage = document.createElement('div');
-            summaryMessage.classList.add('summary-message'); // Add the summary-message class
+            summaryMessage.classList.add('summary-message');
             summaryMessage.innerHTML = `<strong>${sender}:</strong> ${message}`;
             summaryContent.appendChild(summaryMessage);
         }
     </script>
 </body>
+
 
 </html>
